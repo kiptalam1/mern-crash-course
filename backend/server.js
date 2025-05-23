@@ -1,4 +1,5 @@
 import express from "express";
+import mongoose from "mongoose";
 import { connectDb } from "./config/db.js";
 import Product from "./models/product.model.js";
 
@@ -10,8 +11,20 @@ app.get("/", (req, res) => {
 	res.send("hello");
 });
 
+// get all products;
+app.get("/api/products", async (req, res) => {
+	try {
+		const products = await Product.find();
+
+		res.status(200).json({ success: true, data: products });
+	} catch (error) {
+		console.error("Error fetching products", error.message);
+		res.status(500).json({ success: false, message: "Server error" });
+	}
+});
+
 // create new product;
-app.post("/products", async (req, res) => {
+app.post("/api/products", async (req, res) => {
 	const product = req.body;
 
 	if (!product.name || !product.price || !product.image) {
@@ -39,8 +52,28 @@ app.post("/products", async (req, res) => {
 	}
 });
 
+// update a product;
+app.put("/api/products/:id", async (req, res) => {
+	const { id } = req.params;
+	const product = req.body;
+
+	try {
+		if (!mongoose.Types.ObjectId.isValid(id)) {
+			return res
+				.status(404)
+				.json({ success: false, message: "Invalid product id" });
+		}
+		const updatedProduct = await Product.findByIdAndUpdate(id, product, {
+			new: true,
+		});
+		res.status(200).json({ success: true, data: updatedProduct });
+	} catch (error) {
+		res.status(500).json({ success: false, message: "Server error" });
+	}
+});
+
 // delete a product;
-app.delete("/products/:id", async (req, res) => {
+app.delete("/api/products/:id", async (req, res) => {
 	const { id } = req.params;
 
 	try {
