@@ -1,6 +1,8 @@
 import mongoose from "mongoose";
 import Product from "../models/product.model.js";
 
+
+// fetch all the products from db;
 export const getAllProducts = async (req, res) => {
 	try {
 		const products = await Product.find();
@@ -12,6 +14,7 @@ export const getAllProducts = async (req, res) => {
 	}
 };
 
+// add a new product to db;
 export const createNewProduct = async (req, res) => {
 	const product = req.body;
 
@@ -21,14 +24,12 @@ export const createNewProduct = async (req, res) => {
 			message: "All fields required",
 		});
 	}
-
 	const newProduct = new Product(product);
 
 	try {
 		await newProduct.save();
 		res.status(201).json({
 			success: true,
-
 			data: newProduct,
 		});
 	} catch (error) {
@@ -40,6 +41,7 @@ export const createNewProduct = async (req, res) => {
 	}
 };
 
+// change a product in db;
 export const updateProduct = async (req, res) => {
 	const { id } = req.params;
 	const product = req.body;
@@ -59,8 +61,15 @@ export const updateProduct = async (req, res) => {
 	}
 };
 
+// remove a product from db;
 export const deleteProduct = async (req, res) => {
-	const { id } = req.params;
+  const { id } = req.params;
+
+	if (!mongoose.Types.ObjectId.isValid(id)) {
+		return res
+			.status(404)
+			.json({ success: false, message: "Invalid product id" });
+	}
 
 	try {
 		await Product.findByIdAndDelete(id);
@@ -69,7 +78,7 @@ export const deleteProduct = async (req, res) => {
 			message: "Product deleted successfully",
 		});
 	} catch (error) {
-		res.status(400).json({
+		res.status(500).json({
 			success: false,
 			message: "Product not found",
 		});
